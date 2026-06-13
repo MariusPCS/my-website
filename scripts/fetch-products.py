@@ -79,7 +79,8 @@ def main():
     import urllib.parse  # noqa: PLC0415
 
     api_key = os.environ.get("PROFITSHARE_API_KEY", "")
-    api_user = os.environ.get("PROFITSHARE_USER_EMAIL", "")  # registered email on 2Performant
+    # Try the registered email first; fall back to the API user identifier
+    api_user = os.environ.get("PROFITSHARE_USER_EMAIL", "") or os.environ.get("PROFITSHARE_API_USER", "")
 
     if not api_key or not api_user:
         write_stub("API credentials not configured")
@@ -94,7 +95,9 @@ def main():
         FALLBACK.write_text(json.dumps(products, indent=2))
         print(f"Fetched {len(products)} affiliate links → {OUTPUT}")
     except urllib.error.HTTPError as e:
+        body = e.read().decode("utf-8", errors="replace")[:300]
         print(f"WARNING: ProfitShare API returned HTTP {e.code}: {e.reason}")
+        print(f"Response body: {body}")
         if FALLBACK.exists():
             print("Using cached product data.")
             shutil.copy(FALLBACK, OUTPUT)

@@ -52,6 +52,7 @@ jobs:
           PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
           PROFITSHARE_AFF_CODE: ${{ secrets.PROFITSHARE_AFF_CODE }}
           PROFITSHARE_USER_EMAIL: ${{ secrets.PROFITSHARE_USER_EMAIL }}
+          PROFITSHARE_API_USER: ${{ secrets.PROFITSHARE_API_USER }}
 
       - name: Save products cache
         uses: actions/cache/save@v4
