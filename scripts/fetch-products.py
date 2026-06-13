@@ -107,8 +107,8 @@ def main():
     import urllib.parse  # noqa: PLC0415
 
     api_key = os.environ.get("PROFITSHARE_API_KEY", "")
-    # Try the registered email first; fall back to the API user identifier
-    api_user = os.environ.get("PROFITSHARE_USER_EMAIL", "") or os.environ.get("PROFITSHARE_API_USER", "")
+    # PROFITSHARE_API_USER is the unique_code shown as "API user" in the ProfitShare dashboard
+    api_user = os.environ.get("PROFITSHARE_API_USER", "")
 
     if not api_key or not api_user:
         write_stub("API credentials not configured")
