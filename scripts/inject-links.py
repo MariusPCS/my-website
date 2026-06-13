@@ -41,7 +41,7 @@ def inject_html(products: dict) -> list[str]:
                 home_key = f"{advertiser}_HOME"
                 if home_key in products:
                     content = content.replace(f"{{{{{slug}}}}}", products[home_key])
-                    print(f"  WARNING [{path.name}]: {{{{{{slug}}}}}}} → fallback to {home_key} (needs manual review)")
+                    print(f"  WARNING [{path.name}]: {{{{{slug}}}}} replaced by fallback {home_key} (needs manual review)")
                 else:
                     unresolved.append(f"{path.name}: {{{{{slug}}}}}")
 
