@@ -78,8 +78,11 @@ def main():
             shutil.copy(FALLBACK, OUTPUT)
             sys.exit(0)
         else:
-            print("ERROR: No API key and no fallback cache. Cannot continue.")
-            sys.exit(1)
+            print("WARNING: No API key and no fallback cache. Creating stub products.json.")
+            print("Add PROFITSHARE_API_KEY to GitHub Secrets to enable real affiliate links.")
+            stub = {"EMAG_HOME": "#affiliate-link-pending", "ALTEX_HOME": "#affiliate-link-pending"}
+            OUTPUT.write_text(json.dumps(stub, indent=2))
+            sys.exit(0)
 
     try:
         products = fetch(api_key)
