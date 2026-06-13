@@ -25,7 +25,7 @@ def load_products() -> dict:
 def inject_html(products: dict) -> list[str]:
     """Inject links into all HTML files. Returns list of unresolved slugs."""
     unresolved = []
-    html_files = list(ROOT.glob("*.html")) + list(ROOT.glob("articles/*.html"))
+    html_files = list(ROOT.rglob("*.html"))
 
     for path in html_files:
         content = path.read_text()

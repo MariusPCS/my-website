@@ -25,7 +25,7 @@ def resolve(source: Path, href: str) -> Path:
 
 
 def main():
-    html_files = list(ROOT.glob("*.html")) + list(ROOT.glob("articles/*.html"))
+    html_files = [p for p in ROOT.rglob("*.html") if "node_modules" not in p.parts]
     broken = []
 
     for source in html_files:

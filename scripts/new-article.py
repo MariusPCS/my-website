@@ -76,18 +76,25 @@ def main():
   }}
   </script>
 
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="../style.css" />
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
 
   <header>
-    <a href="../index.html" class="logo">TechPicks</a>
-    <nav aria-label="Main navigation">
-      <a href="../index.html">Home</a>
-      <a href="../index.html#categories">Categories</a>
-      <a href="../about.html">About</a>
-    </nav>
+    <a href="../index.html" class="logo">Tech<span>Picks</span></a>
+    <div class="header-right">
+      <nav aria-label="Main navigation">
+        <a href="../index.html">Home</a>
+        <a href="../index.html#categories">Categories</a>
+        <a href="../about.html">About</a>
+      </nav>
+    </div>
   </header>
 
   <main id="main">

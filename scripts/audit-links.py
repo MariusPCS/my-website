@@ -54,7 +54,7 @@ def main():
         print("Running in offline mode — checking only for obviously broken link patterns.")
 
     products = load_products()
-    html_files = list(ROOT.glob("*.html")) + list(ROOT.glob("articles/*.html"))
+    html_files = list(ROOT.rglob("*.html"))
 
     total = 0
     updated = 0

@@ -8,6 +8,10 @@
   <meta name="robots" content="index, follow" />
   <link rel="canonical" href="https://mariuspcs.github.io/my-website/" />
 
+  <link rel="alternate" hreflang="en" href="https://mariuspcs.github.io/my-website/index.html" />
+  <link rel="alternate" hreflang="ro" href="https://mariuspcs.github.io/my-website/ro/index.html" />
+  <link rel="alternate" hreflang="x-default" href="https://mariuspcs.github.io/my-website/ro/index.html" />
+
   <!-- Open Graph -->
   <meta property="og:title" content="TechPicks — Honest Tech Reviews & Buying Guides" />
   <meta property="og:description" content="Honest, in-depth tech reviews and buying guides. Find the best laptops, phones, and gadgets for your budget." />
@@ -30,19 +34,31 @@
   }
   </script>
 
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#0f1115" media="(prefers-color-scheme: dark)" />
+
   <link rel="alternate" type="application/rss+xml" title="TechPicks RSS Feed" href="feed.xml" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to main content</a>
 
   <header>
-    <a href="index.html" class="logo">TechPicks</a>
-    <nav aria-label="Main navigation">
-      <a href="index.html">Home</a>
-      <a href="#categories">Categories</a>
-      <a href="about.html">About</a>
-    </nav>
+    <a href="index.html" class="logo">Tech<span>Picks</span></a>
+    <div class="header-right">
+      <nav aria-label="Main navigation">
+        <a href="index.html">Home</a>
+        <a href="#categories">Categories</a>
+        <a href="about.html">About</a>
+      </nav>
+      <div class="lang-switch" role="group" aria-label="Language">
+        <a href="index.html" class="active" aria-current="true">EN</a>
+        <a href="ro/index.html">RO</a>
+      </div>
+    </div>
   </header>
 
   <div class="hero">
