@@ -79,10 +79,7 @@ def main():
     import urllib.parse  # noqa: PLC0415
 
     api_key = os.environ.get("PROFITSHARE_API_KEY", "")
-    api_user = os.environ.get("PROFITSHARE_AFF_CODE", "")
-
-    # PROFITSHARE_AFF_CODE holds the affiliate user code (used both as aff_code and user_email)
-    # PROFITSHARE_API_KEY holds the secret token
+    api_user = os.environ.get("PROFITSHARE_USER_EMAIL", "")  # registered email on 2Performant
 
     if not api_key or not api_user:
         write_stub("API credentials not configured")

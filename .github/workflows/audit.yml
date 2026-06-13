@@ -37,6 +37,7 @@ jobs:
         env:
           PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
           PROFITSHARE_AFF_CODE: ${{ secrets.PROFITSHARE_AFF_CODE }}
+          PROFITSHARE_USER_EMAIL: ${{ secrets.PROFITSHARE_USER_EMAIL }}
 
       - name: Audit and update all affiliate links
         run: python scripts/audit-links.py
