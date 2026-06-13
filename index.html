@@ -3,28 +3,120 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>My Website</title>
+  <title>TechPicks — Honest Tech Reviews & Buying Guides</title>
+  <meta name="description" content="Honest, in-depth tech reviews and buying guides. Find the best laptops, phones, and gadgets for your budget." />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://mariuspcs.github.io/my-website/" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="TechPicks — Honest Tech Reviews & Buying Guides" />
+  <meta property="og:description" content="Honest, in-depth tech reviews and buying guides. Find the best laptops, phones, and gadgets for your budget." />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="en_US" />
+  <meta property="og:url" content="https://mariuspcs.github.io/my-website/" />
+
+  <!-- JSON-LD: Website -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "TechPicks",
+    "url": "https://mariuspcs.github.io/my-website/",
+    "description": "Honest tech reviews and buying guides",
+    "potentialAction": {
+      "@type": "ReadAction",
+      "target": "https://mariuspcs.github.io/my-website/"
+    }
+  }
+  </script>
+
+  <link rel="alternate" type="application/rss+xml" title="TechPicks RSS Feed" href="feed.xml" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <a href="#main" class="skip-link">Skip to main content</a>
+
   <header>
-    <h1>My Website</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
+    <a href="index.html" class="logo">TechPicks</a>
+    <nav aria-label="Main navigation">
+      <a href="index.html">Home</a>
+      <a href="#categories">Categories</a>
+      <a href="about.html">About</a>
     </nav>
   </header>
 
-  <main>
-    <section class="hero">
-      <h2>Welcome</h2>
-      <p>This site is built with plain HTML &amp; CSS and auto-deploys to GitHub Pages.</p>
-    </section>
+  <div class="hero">
+    <h1>Honest Tech Reviews &amp; Buying Guides</h1>
+    <p>We test the products so you don't have to. Find the best value for your budget.</p>
+  </div>
+
+  <main id="main">
+    <div class="container">
+
+      <section>
+        <h2 class="section-title">Latest Reviews</h2>
+        <div class="article-grid">
+      <!-- ARTICLE_GRID_START -->
+        <article class="article-card">
+          <a href="articles/best-budget-laptops-2026.html">
+            <picture>
+              <source srcset="assets/images/best-budget-laptops-2026.webp" type="image/webp" />
+              <img src="assets/images/best-budget-laptops-2026.jpg" alt="Best Budget Laptops Under 2500 RON in 2026" loading="lazy" width="400" height="225" />
+            </picture>
+          </a>
+          <div class="card-body">
+            <span class="category-tag">Laptops</span>
+            <h2><a href="articles/best-budget-laptops-2026.html">Best Budget Laptops Under 2500 RON in 2026</a></h2>
+            <p>We tested 10 budget laptops to find the best performance per leu under 2500 RON. Here are our top picks.</p>
+            <div class="card-footer">
+              <span class="star-rating" aria-label="Rating: 4.5 out of 5">&#9733;&#9733;&#9733;&#9733;&#9734;</span>
+              <time datetime="2026-06-13">2026-06-13</time>
+            </div>
+          </div>
+        </article>
+      <!-- ARTICLE_GRID_END -->
+        </div>
+      </section>
+
+      <section id="categories">
+        <h2 class="section-title">Browse by Category</h2>
+        <div class="article-grid">
+          <article class="article-card">
+            <div class="card-body">
+              <span class="category-tag">Laptops</span>
+              <h2><a href="index.html#categories">Laptops</a></h2>
+              <p>Budget picks, ultrabooks, and gaming machines — all tested hands-on.</p>
+            </div>
+          </article>
+          <article class="article-card">
+            <div class="card-body">
+              <span class="category-tag">Phones</span>
+              <h2><a href="index.html#categories">Phones</a></h2>
+              <p>Flagship killers and mid-range champions reviewed and compared.</p>
+            </div>
+          </article>
+          <article class="article-card">
+            <div class="card-body">
+              <span class="category-tag">Audio</span>
+              <h2><a href="index.html#categories">Audio</a></h2>
+              <p>Headphones, earbuds, and speakers — sound quality put to the test.</p>
+            </div>
+          </article>
+        </div>
+      </section>
+
+    </div>
   </main>
 
   <footer>
-    <p>&copy; 2026 My Website</p>
+    <p>
+      &copy; 2026 TechPicks &middot;
+      <a href="about.html">About</a> &middot;
+      <a href="feed.xml">RSS</a>
+    </p>
+    <p class="disclaimer">
+      Some links are affiliate links. We may earn a commission at no extra cost to you.
+    </p>
   </footer>
 </body>
 </html>

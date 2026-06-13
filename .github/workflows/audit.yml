@@ -1,0 +1,57 @@
+name: Weekly Affiliate Link Audit
+
+on:
+  schedule:
+    - cron: "0 8 * * 1"  # Every Monday at 08:00 UTC
+  workflow_dispatch:      # Allow manual trigger
+
+permissions:
+  contents: write  # Needed to commit updated links
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install Pillow requests
+
+      - name: Restore products cache
+        uses: actions/cache/restore@v4
+        with:
+          path: products_cache.json
+          key: products-cache-latest
+          restore-keys: products-cache-
+
+      - name: Fetch latest product data
+        run: python scripts/fetch-products.py
+        env:
+          PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
+          PROFITSHARE_AFF_CODE: ${{ secrets.PROFITSHARE_AFF_CODE }}
+
+      - name: Audit and update all affiliate links
+        run: python scripts/audit-links.py
+        env:
+          PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
+
+      - name: Regenerate metadata
+        run: python scripts/generate-meta.py
+
+      - name: Commit updates if any links changed
+        run: |
+          git config user.name "TechPicks Bot"
+          git config user.email "actions@github.com"
+          git diff --quiet || (
+            git add -A &&
+            git commit -m "chore: weekly affiliate link audit [skip ci]" &&
+            git push
+          )

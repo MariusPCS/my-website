@@ -1,0 +1,22 @@
+# Secrets and API keys
+.env
+*.key
+*.pem
+
+# Generated during CI build — never commit
+products.json
+products_cache.json
+
+# Original images (only WebP goes in repo)
+assets/images/original/
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+
+# OS
+.DS_Store
+Thumbs.db

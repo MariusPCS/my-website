@@ -19,8 +19,54 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install Pillow requests
+
+      - name: Restore products cache (fallback if API is down)
+        uses: actions/cache/restore@v4
+        with:
+          path: products_cache.json
+          key: products-cache-${{ github.run_id }}
+          restore-keys: products-cache-
+
+      - name: Audit existing affiliate links
+        run: python scripts/audit-links.py
+        env:
+          PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
+
+      - name: Check internal links
+        run: python scripts/check-internal.py
+
+      - name: Fetch latest ProfitShare product data
+        run: python scripts/fetch-products.py
+        env:
+          PROFITSHARE_API_KEY: ${{ secrets.PROFITSHARE_API_KEY }}
+          PROFITSHARE_AFF_CODE: ${{ secrets.PROFITSHARE_AFF_CODE }}
+
+      - name: Save products cache
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: products_cache.json
+          key: products-cache-${{ github.run_id }}
+
+      - name: Inject affiliate links
+        run: python scripts/inject-links.py
+
+      - name: Optimize images
+        run: python scripts/optimize-images.py
+
+      - name: Generate sitemap, RSS feed, and homepage grid
+        run: python scripts/generate-meta.py
 
       - uses: actions/configure-pages@v5
 
