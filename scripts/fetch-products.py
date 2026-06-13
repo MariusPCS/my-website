@@ -2,10 +2,12 @@
 """Fetch active product/program data from ProfitShare (2Performant) API.
 
 Outputs products.json (gitignored). Falls back to cached artifact if API is down.
+Auth: 2Performant uses user_email + user_token as query params.
 """
 
 import json
 import os
+import shutil
 import sys
 import urllib.request
 import urllib.error
@@ -17,29 +19,37 @@ FALLBACK = ROOT / "products_cache.json"
 
 API_BASE = "https://api.2performant.com"
 
+STUB = {
+    "EMAG_HOME": "#affiliate-link-pending",
+    "ALTEX_HOME": "#affiliate-link-pending",
+}
 
-def fetch(api_key: str) -> dict:
+
+def write_stub(reason: str) -> None:
+    print(f"WARNING: {reason}. Using stub links — add secrets to enable real links.")
+    OUTPUT.write_text(json.dumps(STUB, indent=2))
+
+
+def fetch(api_user: str, api_key: str) -> dict:
     """Return a dict mapping product slug → tracking URL."""
-    headers = {
-        "Authorization": f"Bearer {api_key}",
-        "Accept": "application/json",
-    }
+    aff_code = os.environ.get("PROFITSHARE_AFF_CODE", "")
 
-    # Fetch active affiliate programs the user is approved for
-    req = urllib.request.Request(
-        f"{API_BASE}/affiliate/programs?filter[status]=accepted&per_page=100",
-        headers=headers,
-    )
+    # 2Performant auth: user_email + user_token as query params
+    auth_params = f"user_email={urllib.parse.quote(api_user)}&user_token={api_key}"
+
+    headers = {"Accept": "application/json"}
+
+    # Fetch accepted affiliate programs
+    url = f"{API_BASE}/affiliate/programs?filter[status]=accepted&per_page=100&{auth_params}"
+    req = urllib.request.Request(url, headers=headers)
     with urllib.request.urlopen(req, timeout=15) as resp:
         programs_data = json.loads(resp.read())
 
     products = {}
 
-    # Build home-page fallback links for each accepted program
     for program in programs_data.get("programs", []):
         unique = program.get("unique_code", "")
         slug = program.get("slug", "").upper().replace("-", "_")
-        aff_code = os.environ.get("PROFITSHARE_AFF_CODE", "")
 
         if unique and slug:
             tracking_url = (
@@ -48,57 +58,58 @@ def fetch(api_key: str) -> dict:
             )
             products[f"{slug}_HOME"] = tracking_url
 
-    # Fetch product feeds (deep links) if available
-    req2 = urllib.request.Request(
-        f"{API_BASE}/affiliate/product_feeds?per_page=200",
-        headers=headers,
-    )
+    # Fetch product deep links if available
     try:
+        url2 = f"{API_BASE}/affiliate/product_feeds?per_page=200&{auth_params}"
+        req2 = urllib.request.Request(url2, headers=headers)
         with urllib.request.urlopen(req2, timeout=15) as resp:
             feeds_data = json.loads(resp.read())
         for item in feeds_data.get("product_feeds", []):
             slug = item.get("slug", "").upper().replace("-", "_")
-            url = item.get("url", "")
-            if slug and url:
-                products[slug] = url
+            item_url = item.get("url", "")
+            if slug and item_url:
+                products[slug] = item_url
     except Exception:
-        pass  # Product feeds are optional; home links are sufficient fallback
+        pass  # Deep links optional
 
     return products
 
 
 def main():
-    api_key = os.environ.get("PROFITSHARE_API_KEY", "")
+    import urllib.parse  # noqa: PLC0415
 
-    if not api_key:
-        print("WARNING: PROFITSHARE_API_KEY not set.")
-        if FALLBACK.exists():
-            print(f"Using fallback: {FALLBACK}")
-            import shutil
-            shutil.copy(FALLBACK, OUTPUT)
-            sys.exit(0)
-        else:
-            print("WARNING: No API key and no fallback cache. Creating stub products.json.")
-            print("Add PROFITSHARE_API_KEY to GitHub Secrets to enable real affiliate links.")
-            stub = {"EMAG_HOME": "#affiliate-link-pending", "ALTEX_HOME": "#affiliate-link-pending"}
-            OUTPUT.write_text(json.dumps(stub, indent=2))
-            sys.exit(0)
+    api_key = os.environ.get("PROFITSHARE_API_KEY", "")
+    api_user = os.environ.get("PROFITSHARE_AFF_CODE", "")
+
+    # PROFITSHARE_AFF_CODE holds the affiliate user code (used both as aff_code and user_email)
+    # PROFITSHARE_API_KEY holds the secret token
+
+    if not api_key or not api_user:
+        write_stub("API credentials not configured")
+        sys.exit(0)
 
     try:
-        products = fetch(api_key)
+        products = fetch(api_user, api_key)
+        if not products:
+            write_stub("API returned no programs (account may not be approved yet)")
+            sys.exit(0)
         OUTPUT.write_text(json.dumps(products, indent=2))
-        # Update the fallback cache for next time
         FALLBACK.write_text(json.dumps(products, indent=2))
-        print(f"Fetched {len(products)} product links → {OUTPUT}")
+        print(f"Fetched {len(products)} affiliate links → {OUTPUT}")
+    except urllib.error.HTTPError as e:
+        print(f"WARNING: ProfitShare API returned HTTP {e.code}: {e.reason}")
+        if FALLBACK.exists():
+            print("Using cached product data.")
+            shutil.copy(FALLBACK, OUTPUT)
+        else:
+            write_stub(f"API error {e.code} and no cache available")
     except urllib.error.URLError as e:
         print(f"WARNING: ProfitShare API unreachable: {e}")
         if FALLBACK.exists():
-            print(f"Falling back to cached data: {FALLBACK}")
-            import shutil
+            print("Using cached product data.")
             shutil.copy(FALLBACK, OUTPUT)
         else:
-            print("ERROR: API down and no fallback cache available.")
-            sys.exit(1)
+            write_stub("API unreachable and no cache available")
 
 
 if __name__ == "__main__":
