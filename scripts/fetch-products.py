@@ -13,6 +13,12 @@ import urllib.request
 import urllib.error
 from pathlib import Path
 
+try:
+    import requests
+    USE_REQUESTS = True
+except ImportError:
+    USE_REQUESTS = False
+
 ROOT = Path(__file__).parent.parent
 OUTPUT = ROOT / "products.json"
 FALLBACK = ROOT / "products_cache.json"
@@ -30,47 +36,69 @@ def write_stub(reason: str) -> None:
     OUTPUT.write_text(json.dumps(STUB, indent=2))
 
 
+BROWSER_HEADERS = {
+    "Accept": "application/json, text/plain, */*",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Accept-Encoding": "gzip, deflate, br",
+    "User-Agent": (
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Referer": "https://app.2performant.com/",
+    "Origin": "https://app.2performant.com",
+    "Connection": "keep-alive",
+}
+
+
 def fetch(api_user: str, api_key: str) -> dict:
     """Return a dict mapping product slug → tracking URL."""
     aff_code = os.environ.get("PROFITSHARE_AFF_CODE", "")
+    params = {"user_email": api_user, "user_token": api_key, "filter[status]": "accepted", "per_page": 100}
 
-    # 2Performant auth: user_email + user_token as query params
-    auth_params = f"user_email={urllib.parse.quote(api_user)}&user_token={api_key}"
-
-    headers = {"Accept": "application/json"}
-
-    # Fetch accepted affiliate programs
-    url = f"{API_BASE}/affiliate/programs?filter[status]=accepted&per_page=100&{auth_params}"
-    req = urllib.request.Request(url, headers=headers)
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        programs_data = json.loads(resp.read())
+    if USE_REQUESTS:
+        session = requests.Session()
+        session.headers.update(BROWSER_HEADERS)
+        resp = session.get(f"{API_BASE}/affiliate/programs", params=params, timeout=20)
+        resp.raise_for_status()
+        programs_data = resp.json()
+    else:
+        import urllib.parse  # noqa: PLC0415
+        qs = urllib.parse.urlencode(params)
+        req = urllib.request.Request(f"{API_BASE}/affiliate/programs?{qs}", headers=BROWSER_HEADERS)
+        with urllib.request.urlopen(req, timeout=20) as r:
+            programs_data = json.loads(r.read())
 
     products = {}
-
     for program in programs_data.get("programs", []):
         unique = program.get("unique_code", "")
         slug = program.get("slug", "").upper().replace("-", "_")
-
         if unique and slug:
-            tracking_url = (
+            products[f"{slug}_HOME"] = (
                 f"https://event.2performant.com/events/click"
                 f"?ad_type=banner&unique={unique}&aff_code={aff_code}"
             )
-            products[f"{slug}_HOME"] = tracking_url
 
-    # Fetch product deep links if available
+    # Deep links (optional)
     try:
-        url2 = f"{API_BASE}/affiliate/product_feeds?per_page=200&{auth_params}"
-        req2 = urllib.request.Request(url2, headers=headers)
-        with urllib.request.urlopen(req2, timeout=15) as resp:
-            feeds_data = json.loads(resp.read())
+        if USE_REQUESTS:
+            r2 = session.get(f"{API_BASE}/affiliate/product_feeds",
+                             params={"user_email": api_user, "user_token": api_key, "per_page": 200},
+                             timeout=20)
+            feeds_data = r2.json() if r2.ok else {}
+        else:
+            import urllib.parse  # noqa: PLC0415
+            qs2 = urllib.parse.urlencode({"user_email": api_user, "user_token": api_key, "per_page": 200})
+            req2 = urllib.request.Request(f"{API_BASE}/affiliate/product_feeds?{qs2}", headers=BROWSER_HEADERS)
+            with urllib.request.urlopen(req2, timeout=20) as r:
+                feeds_data = json.loads(r.read())
         for item in feeds_data.get("product_feeds", []):
             slug = item.get("slug", "").upper().replace("-", "_")
             item_url = item.get("url", "")
             if slug and item_url:
                 products[slug] = item_url
     except Exception:
-        pass  # Deep links optional
+        pass
 
     return products
 
@@ -94,22 +122,21 @@ def main():
         OUTPUT.write_text(json.dumps(products, indent=2))
         FALLBACK.write_text(json.dumps(products, indent=2))
         print(f"Fetched {len(products)} affiliate links → {OUTPUT}")
-    except urllib.error.HTTPError as e:
-        body = e.read().decode("utf-8", errors="replace")[:300]
-        print(f"WARNING: ProfitShare API returned HTTP {e.code}: {e.reason}")
-        print(f"Response body: {body}")
+    except Exception as e:
+        # Covers requests.HTTPError, urllib.error.HTTPError, urllib.error.URLError, etc.
+        err_body = ""
+        if hasattr(e, "response") and e.response is not None:
+            err_body = e.response.text[:300]
+        elif hasattr(e, "read"):
+            err_body = e.read().decode("utf-8", errors="replace")[:300]
+        print(f"WARNING: ProfitShare API error: {e}")
+        if err_body:
+            print(f"Response: {err_body}")
         if FALLBACK.exists():
             print("Using cached product data.")
             shutil.copy(FALLBACK, OUTPUT)
         else:
-            write_stub(f"API error {e.code} and no cache available")
-    except urllib.error.URLError as e:
-        print(f"WARNING: ProfitShare API unreachable: {e}")
-        if FALLBACK.exists():
-            print("Using cached product data.")
-            shutil.copy(FALLBACK, OUTPUT)
-        else:
-            write_stub("API unreachable and no cache available")
+            write_stub("API error and no cache available")
 
 
 if __name__ == "__main__":
